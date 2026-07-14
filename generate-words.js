@@ -1,0 +1,136 @@
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+
+const DATA_DIR = path.join(__dirname, 'client', 'src', 'data');
+
+// Ensure directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Function to fetch words from URL
+const fetchWords = (url) => {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        resolve(data.split('\n').map(w => w.trim().toLowerCase()).filter(w => w.length > 1 && /^[a-z]+$/.test(w)));
+      });
+    }).on('error', reject);
+  });
+};
+
+const devWordsList = [
+  "react", "javascript", "html", "css", "node", "express", "function", "object", 
+  "array", "server", "client", "design", "button", "screen", "monitor", "internet", 
+  "document", "meeting", "calendar", "email", "database", "git", "github", "terminal", 
+  "component", "state", "props", "hook", "render", "async", "promise", "fetch",
+  "variable", "constant", "string", "number", "boolean", "undefined", "null",
+  "frontend", "backend", "fullstack", "api", "rest", "graphql", "query", "mutation",
+  "schema", "model", "view", "controller", "architecture", "pattern", "deploy",
+  "build", "compile", "debug", "error", "warning", "info", "log", "trace", "stack",
+  "overflow", "memory", "cpu", "process", "thread", "concurrency", "parallel",
+  "sync", "await", "callback", "closure", "scope", "context", "this", "prototype",
+  "class", "interface", "type", "enum", "generic", "module", "import", "export",
+  "require", "package", "dependency", "library", "framework", "tool", "utility",
+  "helper", "service", "provider", "consumer", "context", "reducer", "action",
+  "dispatch", "store", "middleware", "router", "route", "path", "url", "uri",
+  "domain", "host", "port", "protocol", "http", "https", "tcp", "udp", "socket",
+  "connection", "request", "response", "header", "body", "status", "code",
+  "json", "xml", "yaml", "csv", "text", "binary", "stream", "buffer", "cache",
+  "cookie", "session", "token", "auth", "login", "logout", "register", "password",
+  "hash", "salt", "encrypt", "decrypt", "cipher", "key", "certificate", "sign",
+  "verify", "validate", "sanitize", "escape", "parse", "stringify", "serialize",
+  "deserialize", "format", "lint", "test", "spec", "mock", "stub", "spy",
+  "assert", "expect", "should", "suite", "runner", "coverage", "report", "ci",
+  "cd", "pipeline", "job", "task", "script", "command", "args", "env", "config",
+  "settings", "options", "params", "query", "mutation", "subscription", "event",
+  "listener", "emitter", "handler", "callback", "delegate", "proxy", "ref",
+  "dom", "virtual", "shadow", "node", "element", "attribute", "property",
+  "style", "class", "id", "tag", "selector", "query", "match", "traverse",
+  "append", "prepend", "insert", "remove", "replace", "clone", "create",
+  "destroy", "mount", "unmount", "update", "render", "paint", "layout",
+  "reflow", "repaint", "composite", "layer", "animation", "transition",
+  "transform", "translate", "scale", "rotate", "skew", "matrix", "perspective",
+  "origin", "opacity", "visibility", "display", "position", "top", "right",
+  "bottom", "left", "width", "height", "margin", "padding", "border", "outline",
+  "background", "color", "font", "text", "line", "letter", "word", "spacing",
+  "align", "justify", "flex", "grid", "float", "clear", "overflow", "clip",
+  "scroll", "zindex", "cursor", "pointer", "hover", "active", "focus",
+  "visited", "link", "disabled", "checked", "selected", "required", "readonly",
+  "valid", "invalid", "pattern", "min", "max", "step", "value", "default",
+  "placeholder", "autocomplete", "autofocus", "form", "input", "textarea",
+  "select", "option", "button", "submit", "reset", "fieldset", "legend",
+  "label", "table", "row", "col", "head", "body", "foot", "cell", "span",
+  "div", "p", "a", "img", "svg", "canvas", "video", "audio", "iframe",
+  "embed", "object", "param", "source", "track", "map", "area", "math"
+];
+
+const techWordsList = [
+  "algorithm", "bandwidth", "blockchain", "browser", "byte", "cache", "cloud",
+  "compiler", "cookie", "cybersecurity", "database", "encryption", "firewall",
+  "hardware", "interface", "kernel", "latency", "linux", "mac", "malware",
+  "modem", "network", "node", "packet", "pixel", "plugin", "protocol",
+  "router", "server", "software", "spam", "spyware", "terabyte", "trojan",
+  "unix", "virus", "widget", "windows", "wireless", "zip", "agile", "devops",
+  "scrum", "kanban", "sprint", "backlog", "epic", "story", "ticket", "bug",
+  "feature", "release", "patch", "version", "commit", "merge", "branch",
+  "rebase", "conflict", "pull", "push", "fetch", "clone", "fork", "repo",
+  "stash", "tag", "webhook", "ssh", "ssl", "tls", "vpn", "ip", "dns",
+  "dhcp", "mac", "lan", "wan", "wlan", "ssid", "wpa", "wep", "bluetooth",
+  "nfc", "rfid", "gps", "usb", "hdmi", "vga", "dvi", "displayport", "thunderbolt",
+  "pcie", "sata", "nvme", "ssd", "hdd", "ram", "rom", "cpu", "gpu", "tpu",
+  "npu", "motherboard", "psu", "case", "fan", "heatsink", "thermal", "paste",
+  "bios", "uefi", "os", "firmware", "driver", "utility", "app", "application",
+  "program", "process", "daemon", "service", "container", "docker", "kubernetes",
+  "pod", "node", "cluster", "swarm", "orchestration", "microservice", "monolith",
+  "serverless", "lambda", "function", "edge", "cdn", "proxy", "load", "balancer",
+  "gateway", "firewall", "waf", "ids", "ips", "siem", "soc", "noc",
+  "incident", "response", "forensics", "audit", "compliance", "gdpr", "hipaa",
+  "pci", "iso", "nist", "cis", "owasp", "cve", "cvss", "exploit", "payload",
+  "shellcode", "rootkit", "botnet", "ddos", "phishing", "ransomware", "spyware",
+  "adware", "keylogger", "backdoor", "zero-day", "vulnerability", "patch",
+  "update", "upgrade", "migration", "deployment", "rollback", "backup",
+  "restore", "disaster", "recovery", "redundancy", "availability", "reliability",
+  "scalability", "performance", "optimization", "tuning", "monitoring",
+  "alerting", "logging", "tracing", "metrics", "dashboard", "grafana",
+  "prometheus", "elk", "splunk", "datadog", "newrelic", "appdynamics",
+  "dynatrace", "sentry", "rollbar", "bugsnag", "pagerduty", "opsgenie"
+];
+
+async function main() {
+  console.log("Fetching common words...");
+  try {
+    // Fetch top 10000 english words (no swears)
+    const url = 'https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-no-swears.txt';
+    let words = await fetchWords(url);
+    
+    // Take the top 2000
+    const top2000 = words.slice(0, 2000);
+    
+    fs.writeFileSync(path.join(DATA_DIR, 'commonWords.js'), `export const commonWords = ${JSON.stringify(top2000, null, 2)};\n`);
+    console.log("commonWords.js created.");
+    
+    fs.writeFileSync(path.join(DATA_DIR, 'developerWords.js'), `export const developerWords = ${JSON.stringify(devWordsList, null, 2)};\n`);
+    console.log("developerWords.js created.");
+
+    fs.writeFileSync(path.join(DATA_DIR, 'techWords.js'), `export const techWords = ${JSON.stringify(techWordsList, null, 2)};\n`);
+    console.log("techWords.js created.");
+    
+    const indexContent = `import { commonWords } from './commonWords';
+import { developerWords } from './developerWords';
+import { techWords } from './techWords';
+
+export const WORDS = [...commonWords, ...developerWords, ...techWords];
+`;
+    fs.writeFileSync(path.join(DATA_DIR, 'index.js'), indexContent);
+    console.log("index.js created.");
+    
+  } catch(e) {
+    console.error("Error generating words:", e);
+  }
+}
+
+main();
